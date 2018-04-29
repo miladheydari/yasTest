@@ -1,24 +1,33 @@
 package com.yas.features.musicPlayer;
 
+import android.content.ComponentName;
+import android.content.Context;
+import android.content.Intent;
+import android.content.ServiceConnection;
+import android.content.SharedPreferences;
+import android.graphics.Bitmap;
+import android.graphics.drawable.Drawable;
 import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.Handler;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.Toolbar;
+import android.os.IBinder;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.squareup.picasso.Picasso;
+import com.squareup.picasso.Target;
 import com.yas.R;
 import com.yas.YasTestApplication;
+import com.yas.interactors.MusicService;
 import com.yas.pojo.MusicDetail;
+import com.yas.utils.ListOrderType;
 import com.yas.utils.bases.BaseActivity;
 import com.yas.utils.customview.LoadingLayout;
 
-import org.parceler.Parcels;
-
 import java.io.IOException;
 import java.util.List;
+import java.util.Random;
 
 import javax.inject.Inject;
 
@@ -28,11 +37,10 @@ import butterknife.OnClick;
 import dagger.android.AndroidInjection;
 import info.abdolahi.CircularMusicProgressBar;
 import info.abdolahi.OnCircularSeekBarChangeListener;
+import jp.wasabeef.blurry.Blurry;
 import timber.log.Timber;
 
-import static android.R.attr.id;
-
-public class MusicPlayerActivity extends BaseActivity implements MusicPlayerContract.View {
+public class MusicPlayerActivity extends BaseActivity implements MusicPlayerContract.View, ServiceConnection {
 
 
     @Inject
@@ -40,11 +48,17 @@ public class MusicPlayerActivity extends BaseActivity implements MusicPlayerCont
     @Inject
     Picasso picasso;
     @Inject
+    SharedPreferences sharedPreferences;
+
     MediaPlayer mMediaPlayer;
     private List<MusicDetail> musicDetails;
+    private ListOrderType listOrderType;
 
     @BindView(R.id.loading)
     LoadingLayout loading;
+
+    @BindView(R.id.imgFill)
+    ImageView imgFill;
 
     @BindView(R.id.tvMusicName)
     TextView tvMusicName;
@@ -59,57 +73,74 @@ public class MusicPlayerActivity extends BaseActivity implements MusicPlayerCont
     CircularMusicProgressBar pbMusic;
 
     @BindView(R.id.imgPlay)
-    ImageView imgPlay;
+    ImageButton imgPlay;
     @BindView(R.id.imgRepeat)
-    ImageView imgRepeat;
+    ImageButton imgRepeat;
 
-    @BindView(R.id.toolbar)
-    Toolbar toolbar;
+    //    @BindView(R.id.toolbar)
+//    Toolbar toolbar;
     private int positionToPlay;
     Handler mSeekbarUpdateHandler = new Handler();
-    private boolean flagPlay = true;
+
     private Runnable mUpdateSeekbar;
 
 
     @OnClick(R.id.imgPrevious)
     void onClickPrevius() {
-        if (positionToPlay != 0) {
+        if (positionToPlay != 0)
             positionToPlay--;
-            try {
-                playMusic(musicDetails.get(positionToPlay));
-            } catch (IOException e) {
-                Timber.d(e);
-            }
+        else positionToPlay = musicDetails.size() - 1;
+        try {
+            playMusic((positionToPlay));
+        } catch (IOException e) {
+            Timber.d(e);
         }
+
     }
-reza.safdari@g  
+
     @OnClick(R.id.imgNext)
     void onClickNext() {
-        if (positionToPlay != musicDetails.size() - 1) {
+        if (positionToPlay != musicDetails.size() - 1)
             positionToPlay++;
-            try {
-                playMusic(musicDetails.get(positionToPlay));
-            } catch (IOException e) {
-                Timber.d(e);
-            }
+        else positionToPlay = 0;
+        try {
+            playMusic((positionToPlay));
+        } catch (IOException e) {
+            Timber.d(e);
         }
+
     }
 
 
     @OnClick(R.id.imgPlay)
     void onClickPlay() {
-        if (flagPlay) {
+        if (mMediaPlayer.isPlaying()) {
             mMediaPlayer.pause();
             mSeekbarUpdateHandler.removeCallbacks(mUpdateSeekbar);
-            flagPlay = false;
+
             imgPlay.setImageResource(R.drawable.ic_play_arrow_black_24dp);
         } else {
             mMediaPlayer.start();
             mSeekbarUpdateHandler.postDelayed(mUpdateSeekbar, 0);
-            flagPlay = true;
+
             imgPlay.setImageResource(R.drawable.ic_pause_black_24dp);
 
         }
+    }
+
+    @OnClick(R.id.imgRepeat)
+    void onClickRepeat() {
+        if (listOrderType == ListOrderType.ONE_REPEAT) {
+            listOrderType = ListOrderType.REPEAT;
+            imgRepeat.setImageResource(R.drawable.ic_repeat_black_24dp);
+        } else if (listOrderType == ListOrderType.REPEAT) {
+            listOrderType = ListOrderType.SHUFFLE;
+            imgRepeat.setImageResource(R.drawable.ic_shuffle_black_24dp);
+        } else if (listOrderType == ListOrderType.SHUFFLE) {
+            listOrderType = ListOrderType.ONE_REPEAT;
+            imgRepeat.setImageResource(R.drawable.ic_repeat_one_black_24dp);
+        }
+        sharedPreferences.edit().putString("listOrderType", listOrderType.name()).apply();
     }
 
     @Override
@@ -118,9 +149,10 @@ reza.safdari@g
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_music_player);
         ButterKnife.bind(this);
-        setSupportActionBar(toolbar);
+//        setSupportActionBar(toolbar);
         mPresenter.onViewAttached(this);
-
+//        Intent service = new Intent(this, MusicService.class);
+//        startService(service);
 
 //        if (savedInstanceState != null) {
 //            // Restore value of members from saved state
@@ -136,22 +168,23 @@ reza.safdari@g
 //            name=getIntent().getStringExtra("video_name");
 //        }
 
-        initMusic();
-        initToolbar();
+//        initToolbar();
         mPresenter.subscribe();
 //        mPresenter.getVideoDetailById();
 //        mPresenter.getMusicList();
     }
 
+
     private void initMusic() {
 //        Parcels.unwrap
         musicDetails = (List<MusicDetail>) getIntent().getSerializableExtra("musicList");
-        positionToPlay = getIntent().getIntExtra("currentPosition", 0);
+
         pbMusic.setOnCircularBarChangeListener(new OnCircularSeekBarChangeListener() {
             @Override
             public void onProgressChanged(CircularMusicProgressBar circularBar, int progress, boolean fromUser) {
                 if (fromUser)
-                    mMediaPlayer.seekTo(progress);
+
+                    mMediaPlayer.seekTo((int) (mMediaPlayer.getDuration() * (progress / 100.0)));
             }
 
             @Override
@@ -165,25 +198,63 @@ reza.safdari@g
             }
         });
 
-        try {
-            playMusic(musicDetails.get(positionToPlay));
-            mSeekbarUpdateHandler.postDelayed(mUpdateSeekbar, 0);
-        } catch (IOException e) {
-            Timber.d(e);
+
+        listOrderType = ListOrderType.valueOf(sharedPreferences.getString("listOrderType", ListOrderType.ONE_REPEAT.name()));
+        if (listOrderType == ListOrderType.ONE_REPEAT) {
+            imgRepeat.setImageResource(R.drawable.ic_repeat_one_black_24dp);
+        } else if (listOrderType == ListOrderType.REPEAT) {
+            imgRepeat.setImageResource(R.drawable.ic_repeat_black_24dp);
+        } else if (listOrderType == ListOrderType.SHUFFLE) {
+            imgRepeat.setImageResource(R.drawable.ic_shuffle_black_24dp);
         }
 
+        mMediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+            @Override
+            public void onCompletion(MediaPlayer mediaPlayer) {
+
+                if (listOrderType == ListOrderType.REPEAT) {
+                    if (positionToPlay == musicDetails.size() - 1)
+                        positionToPlay = 0;
+                    else positionToPlay++;
+
+                } else if (listOrderType == ListOrderType.SHUFFLE) {
+                    Random random = new Random(System.currentTimeMillis());
+                    int temp = random.nextInt(musicDetails.size());
+                    while (temp == positionToPlay) {
+                        temp = random.nextInt(musicDetails.size());
+                    }
+                    positionToPlay = temp;
+                }
+
+                try {
+                    playMusic((positionToPlay));
+                } catch (IOException e) {
+
+                    Timber.e(e);
+                }
+
+            }
+        });
+
+        if (getIntent().getExtras().containsKey("currentPosition")) {
+            positionToPlay = getIntent().getIntExtra("currentPosition", 0);
+
+            try {
+                playMusic((positionToPlay));
+                mSeekbarUpdateHandler.postDelayed(mUpdateSeekbar, 0);
+            } catch (IOException e) {
+                Timber.d(e);
+            }
+        } else {
+            positionToPlay = (int) YasTestApplication.getCurrentMusicId();
+            initPage(positionToPlay);
+            mSeekbarUpdateHandler.postDelayed(mUpdateSeekbar, 0);
+
+        }
     }
 
 
-    private void playMusic(MusicDetail musicDetail) throws IOException {
-
-        mMediaPlayer.reset();
-
-        mMediaPlayer.setDataSource(musicDetail.musicPath);
-        //mMediaPlayer.setLooping(true);
-        mMediaPlayer.prepare();
-
-        YasTestApplication.setCurrentMusicPlay(musicDetail);
+    private void initPage(int index) {
         mUpdateSeekbar = new Runnable() {
             @Override
             public void run() {
@@ -192,28 +263,68 @@ reza.safdari@g
             }
         };
 
+        MusicDetail musicDetail = musicDetails.get(index);
+
         tvArtist.setText(musicDetail.artist);
         tvMusicName.setText(musicDetail.title);
 
-        picasso.load(musicDetail.imagePath).noFade().into(pbMusic);
+        getImage(musicDetail.imagePath);
+        if (mMediaPlayer.isPlaying())
+            imgPlay.setImageResource(R.drawable.ic_pause_black_24dp);
+        else
+            imgPlay.setImageResource(R.drawable.ic_play_arrow_black_24dp);
+    }
 
+    private void getImage(final String imagePath) {
+        picasso.load(imagePath).noFade().into(new Target() {
+            @Override
+            public void onBitmapLoaded(Bitmap bitmap, Picasso.LoadedFrom from) {
+                pbMusic.setImageBitmap(bitmap);
+
+                Blurry.with(MusicPlayerActivity.this).radius(10)
+                        .sampling(8)
+                        .async().from(bitmap).into(imgFill);
+
+            }
+
+            @Override
+            public void onBitmapFailed(Exception e, Drawable errorDrawable) {
+                getImage(imagePath);
+            }
+
+            @Override
+            public void onPrepareLoad(Drawable placeHolderDrawable) {
+
+            }
+        });
+
+
+    }
+
+
+    private void playMusic(int index) throws IOException {
+        MusicDetail musicDetail = musicDetails.get(index);
+        mMediaPlayer.reset();
+
+        mMediaPlayer.setDataSource(musicDetail.musicPath);
+        //mMediaPlayer.setLooping(true);
+        mMediaPlayer.prepare();
+
+        YasTestApplication.setCurrentMusicPlay(index);
         mMediaPlayer.start();
-
+        initPage(index);
     }
 
 
-    private void initToolbar() {
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        getSupportActionBar().setDisplayShowHomeEnabled(true);
-    }
-
-
+//    private void initToolbar() {
+//        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+//        getSupportActionBar().setDisplayShowHomeEnabled(true);
+//    }
 
 
     @Override
     public void showError() {
         loading.setState(LoadingLayout.STATE_SHOW_Error);
-
     }
 
     @Override
@@ -231,7 +342,27 @@ reza.safdari@g
     @Override
     public void onStop() {
         super.onStop();
+        unbindService(this);
         mPresenter.unsubscribe();
     }
 
+    @Override
+    protected void onResume() {
+        Intent intent = new Intent(this, MusicService.class);
+        bindService(intent, this, Context.BIND_AUTO_CREATE);
+        super.onResume();
+    }
+
+    @Override
+    public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
+        MusicService.MyBinder b = (MusicService.MyBinder) iBinder;
+        mMediaPlayer = b.getService().mediaPlayer;
+        initMusic();
+    }
+
+    @Override
+    public void onServiceDisconnected(ComponentName componentName) {
+        mMediaPlayer.stop();
+        mMediaPlayer.release();
+    }
 }

@@ -1,14 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/llMusicPlayerRoot"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/app_background"
     android:layoutDirection="rtl"
     android:orientation="vertical">
 
-    <include layout="@layout/toolbar" />
+    <ImageView
+        android:id="@+id/imgFill"
+        android:scaleType="fitXY"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:contentDescription="TODO" />
 
     <com.yas.utils.customview.LoadingLayout xmlns:tools="http://schemas.android.com/tools"
         android:id="@+id/loading"
@@ -70,15 +76,18 @@
                     android:layout_height="250dp"
                     android:layout_gravity="center"
                     android:src="@drawable/ic_newspaper"
-                    app:border_color="#00796B"
-                    app:border_width="5dp"
+                    app:border_color="#efdcba"
+                    app:border_width="15dp"
                     app:centercircle_diammterer="1"
                     app:draw_anticlockwise="false"
                     app:enable_touch="true"
-                    app:progress_color="#e1b357"
+                    app:progress_color="@color/colorAccent"
                     app:progress_startAngle="-90" />
 
                 <ImageView
+                    android:foreground="?android:attr/selectableItemBackground"
+                    android:clickable="true"
+                    android:focusable="true"
                     android:id="@+id/imgPrevious"
                     android:layout_width="50dp"
                     android:layout_height="50dp"
@@ -93,28 +102,31 @@
                 android:orientation="horizontal"
                 android:padding="@dimen/activity_horizontal_margin">
 
-                <ImageView
-                    android:padding="5dp"
+                <ImageButton
                     android:id="@+id/imgRepeat"
                     android:layout_width="50dp"
                     android:layout_height="50dp"
                     android:layout_margin="@dimen/activity_horizontal_margin"
                     android:background="@drawable/circle_green"
+                    android:padding="5dp"
                     android:src="@drawable/ic_repeat_black_24dp" />
 
-                <ImageView
+                <ImageButton
+                    android:foreground="?android:attr/selectableItemBackground"
+                    android:clickable="true"
+                    android:focusable="true"
                     android:id="@+id/imgPlay"
                     android:layout_width="50dp"
                     android:layout_height="50dp"
-                    android:padding="5dp"
                     android:layout_margin="@dimen/activity_horizontal_margin"
                     android:background="@drawable/circle_green"
+                    android:padding="5dp"
                     android:src="@drawable/ic_pause_black_24dp" />
 
             </LinearLayout>
         </LinearLayout>
     </com.yas.utils.customview.LoadingLayout>
 
-</LinearLayout>
+</RelativeLayout>
 
 

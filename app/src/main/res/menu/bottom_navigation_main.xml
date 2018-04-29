@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item
+        android:id="@+id/action_favorites"
+        android:enabled="true"
+        android:icon="@drawable/ic_music_note_white_24dp"
+        android:title="@string/text_on_stock"
+        app:showAsAction="ifRoom" />
+    <item
+        android:id="@+id/action_schedules"
+        android:enabled="true"
+        android:icon="@drawable/ic_music_video_white_24dp"
+        android:title="@string/rotate_page"
+        app:showAsAction="ifRoom" />
+    <item
+        android:id="@+id/action_music"
+        android:enabled="true"
+        android:icon="@drawable/ic_queue_music_white_24dp"
+        android:title="@string/text_new"
+        app:showAsAction="ifRoom" />
+</menu>

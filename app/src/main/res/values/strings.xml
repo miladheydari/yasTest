@@ -7,6 +7,9 @@
     <!-- splash activity start -->
     <string name="splash_textview_title">YasTest</string>
     <string name="splash_textview_subtitle">توضیح اضافه!</string>
+    <string name="text_on_stock">روبورس</string>
+    <string name="rotate_page">صفحه گردون</string>
+    <string name="text_new">دست اول</string>
     <!-- splash activity end -->
 
 

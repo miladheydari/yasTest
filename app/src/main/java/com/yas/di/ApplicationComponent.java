@@ -19,6 +19,7 @@ import dagger.android.AndroidInjectionModule;
         AndroidInjectionModule.class,
         FragmentBuilder.class,
         ActivityBuilder.class,
+        ServiceBuilder.class,
         AndroidModule.class,
         ApplicationModule.class,
         RetrofitModule.class,

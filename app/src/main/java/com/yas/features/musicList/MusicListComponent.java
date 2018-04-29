@@ -9,5 +9,5 @@ import dagger.Subcomponent;
 })
 public interface MusicListComponent {
 
-    void inject(MusicListActivity taskDetailActivity);
+    void inject(MusicListFragment taskDetailActivity);
 }

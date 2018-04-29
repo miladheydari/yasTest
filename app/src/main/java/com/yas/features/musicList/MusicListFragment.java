@@ -1,22 +1,21 @@
 package com.yas.features.musicList;
 
+import android.Manifest;
+import android.app.Fragment;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.annotation.Nullable;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.Toolbar;
-import android.view.Menu;
+import android.view.LayoutInflater;
 import android.view.View;
-import android.widget.LinearLayout;
-import android.widget.TextView;
+import android.view.ViewGroup;
 
-import com.mikepenz.materialdrawer.DrawerBuilder;
 import com.squareup.picasso.Picasso;
 import com.yas.R;
-import com.yas.YasTestApplication;
 import com.yas.features.musicPlayer.MusicPlayerActivity;
 import com.yas.pojo.MusicDetail;
-import com.yas.utils.bases.BaseActivity;
+import com.yas.utils.PermissionHandler;
 import com.yas.utils.customview.LoadingLayout;
 
 import java.io.Serializable;
@@ -29,9 +28,7 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import dagger.android.AndroidInjection;
 
-import static android.R.attr.id;
-
-public class MusicListActivity extends BaseActivity implements MusicListContract.View {
+public class MusicListFragment extends Fragment implements MusicListContract.View {
 
 
     @Inject
@@ -50,28 +47,13 @@ public class MusicListActivity extends BaseActivity implements MusicListContract
     RecyclerView rvCat;
 
 
-    @BindView(R.id.toolbar)
-    Toolbar toolbar;
-
-    @BindView(R.id.llCurrentMusic)
-    LinearLayout llCurrentMusic;
-
-    @BindView(R.id.tvName)
-    TextView tvName;
-    @BindView(R.id.tvArtist)
-    TextView tvArtist;
-
-
+    @Nullable
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, Bundle savedInstanceState) {
         AndroidInjection.inject(this);
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_music_list);
-        ButterKnife.bind(this);
-        setSupportActionBar(toolbar);
+        View root = inflater.inflate(R.layout.activity_music_list, container, false);
+        ButterKnife.bind(this, root);
         mPresenter.onViewAttached(this);
-
-        new DrawerBuilder().withActivity(this).withToolbar(toolbar).build();
 
 //        if (savedInstanceState != null) {
 //            // Restore value of members from saved state
@@ -87,37 +69,30 @@ public class MusicListActivity extends BaseActivity implements MusicListContract
 //            name=getIntent().getStringExtra("video_name");
 //        }
 
-
         initRecyclerview();
-        initCurrentMusic();
+
 
 
         mPresenter.subscribe();
 //        mPresenter.getVideoDetailById();
         mPresenter.getMusicList();
+        return root;
     }
 
-    private void initCurrentMusic() {
-        MusicDetail currentMusicDetail = YasTestApplication.getCurrentMusic();
-        if (YasTestApplication.getCurrentMusic() != null) {
-            llCurrentMusic.setVisibility(View.VISIBLE);
-            tvArtist.setText(currentMusicDetail.artist);
-            tvName.setText(currentMusicDetail.title);
-        } else llCurrentMusic.setVisibility(View.GONE);
-    }
+
 
 
     public void initRecyclerview() {
         musicDetails = new ArrayList<>();
-        mAdapter = new MusicListAdapter(this, picasso, musicDetails);
-        rvCat.setLayoutManager(new GridLayoutManager(this, 3));
+        mAdapter = new MusicListAdapter(getActivity(), picasso, musicDetails);
+        rvCat.setLayoutManager(new GridLayoutManager(getActivity(), 3));
 
-//        rvCat.setLayoutManager(new LinearLayoutManager(MusicListActivity.this, LinearLayoutManager.HORIZONTAL, false));
+//        rvCat.setLayoutManager(new LinearLayoutManager(MusicListFragment.this, LinearLayoutManager.HORIZONTAL, false));
         rvCat.setAdapter(mAdapter);
         mAdapter.setOnItemClickListener(new MusicListAdapter.OnItemClickListener() {
             @Override
             public void onItemClick(int position, MusicDetail video) {
-                Intent intent = new Intent(MusicListActivity.this, MusicPlayerActivity.class);
+                Intent intent = new Intent(getActivity(), MusicPlayerActivity.class);
 //                Parcels.wrap
                 intent.putExtra("musicList", (Serializable) musicDetails);
                 intent.putExtra("currentPosition", position);
@@ -133,12 +108,6 @@ public class MusicListActivity extends BaseActivity implements MusicListContract
 
     }
 
-    @Override
-    protected void onResume() {
-        initCurrentMusic();
-        super.onResume();
-
-    }
 
     @Override
     public void showMusics(List<MusicDetail> musicDetailList) {
@@ -161,9 +130,4 @@ public class MusicListActivity extends BaseActivity implements MusicListContract
         mPresenter.unsubscribe();
     }
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.main, menu);
-        return super.onCreateOptionsMenu(menu);
-    }
 }

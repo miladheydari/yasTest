@@ -20,9 +20,12 @@
 
 
     <activity
-      android:name="com.yas.features.musicList.MusicListActivity">
+      android:name="com.yas.features.main.MainActivity">
     </activity>
-
+    <service
+        android:name=".interactors.MusicService"
+        android:label="music service" >
+    </service>
 
     <!--&lt;!&ndash; [START firebase_service] &ndash;&gt;-->
     <!--<service android:name=".MyFirebaseMessagingService">-->

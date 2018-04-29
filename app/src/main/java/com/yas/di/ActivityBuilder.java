@@ -2,7 +2,8 @@ package com.yas.di;
 
 import dagger.Module;
 import dagger.android.ContributesAndroidInjector;
-import com.yas.features.musicList.MusicListActivity;
+
+import com.yas.features.main.MainActivity;
 import com.yas.features.musicList.MusicListPresenterModule;
 import com.yas.features.musicPlayer.MusicPlayerActivity;
 import com.yas.features.musicPlayer.MusicPlayerPresenterModule;
@@ -10,11 +11,11 @@ import com.yas.features.musicPlayer.MusicPlayerPresenterModule;
 @Module
 public abstract class ActivityBuilder {
 
-    @ContributesAndroidInjector(modules = {MusicListPresenterModule.class})
-    abstract MusicListActivity bindCategoryActivity();
     @ContributesAndroidInjector(modules = {MusicPlayerPresenterModule.class})
     abstract MusicPlayerActivity bindMusicPlayerActivity();
 
-    // helmamvp-needle-add-dagger-activitycomponent
+    @ContributesAndroidInjector(modules = {MusicListPresenterModule.class})
+    abstract MainActivity bindMainActivity();
+// helmamvp-needle-add-dagger-activitycomponent
 
 }

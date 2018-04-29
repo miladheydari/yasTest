@@ -51,7 +51,10 @@ ext {
 
             musicProgressBar: 'com.github.aliab:circular-music-progressbar:v1.4.0',
             parclerApi: 'org.parceler:parceler-api:1.1.10',
-            parcler: 'org.parceler:parceler:1.1.10'
+            parcler: 'org.parceler:parceler:1.1.10',
+            blurry :'jp.wasabeef:blurry:2.1.1',
+
+            materialdrawer :'com.mikepenz:materialdrawer:3.1.2@aar'
 
     ]
 

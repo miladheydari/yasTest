@@ -5,7 +5,7 @@ import android.os.Bundle;
 import android.os.Handler;
 
 import com.yas.R;
-import com.yas.features.musicList.MusicListActivity;
+import com.yas.features.main.MainActivity;
 import com.yas.utils.bases.BaseActivity;
 
 public class SplashActivity extends BaseActivity {
@@ -20,7 +20,7 @@ public class SplashActivity extends BaseActivity {
         new Handler().postDelayed(new Runnable() {
             @Override
             public void run() {
-                Intent i=new Intent(SplashActivity.this,MusicListActivity.class);
+                Intent i=new Intent(SplashActivity.this,MainActivity.class);
                 startActivity(i);
                 finish();
             }

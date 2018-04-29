@@ -80,9 +80,10 @@ dependencies {
 
     compile rootProject.ext.libraries.materialProgress
     compile rootProject.ext.libraries.timber
+    compile rootProject.ext.libraries.blurry
 
     compile rootProject.ext.libraries.calligraphy
-    compile('com.mikepenz:materialdrawer:3.1.2@aar') {
+    compile(rootProject.ext.libraries.materialdrawer) {
         transitive = true
     }
 
