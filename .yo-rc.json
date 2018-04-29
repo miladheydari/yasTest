@@ -1,0 +1,14 @@
+{
+  "generator-helma-mvp": {
+    "promptValues": {
+      "name": "YasTest",
+      "package": "com.yas",
+      "targetSdk": "23",
+      "minSdk": "17",
+      "buildVersion": "26.0.0",
+      "supportVersion": "23.4.0"
+    },
+    "appPackage": "com.yas",
+    "appName": "YasTest"
+  }
+}
